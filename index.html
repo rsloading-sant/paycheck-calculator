@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paycheck Calculator</title>
+  <meta name="description" content="Estimate your take-home pay with 2026 US tax figures. Works offline.">
+  <meta name="theme-color" content="#0f2742">
+  <link rel="manifest" href="public/manifest.json">
+  <link rel="icon" href="public/icons/icon-192.png">
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Paycheck Calculator</h1>
+    <p class="subtitle">2026 estimate &middot; works offline</p>
+  </header>
+
+  <main>
+    <form id="calc-form" autocomplete="off">
+      <div class="field-row">
+        <div class="field">
+          <label for="frequency">Pay frequency</label>
+          <select id="frequency">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly" selected>Biweekly</option>
+            <option value="semimonthly">Semimonthly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="state">Work state</label>
+          <select id="state">
+            <option value="louisiana" selected>Louisiana (3% flat)</option>
+            <option value="florida">Florida (no income tax)</option>
+            <option value="texas">Texas (no income tax)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rate">Hourly rate ($)</label>
+        <input type="number" id="rate" min="0" step="0.01" value="35" inputmode="decimal">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="hours">Regular hours</label>
+          <input type="number" id="hours" min="0" step="0.25" value="80" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="overtime">Overtime hours (1.5&times;)</label>
+          <input type="number" id="overtime" min="0" step="0.25" value="0" inputmode="decimal">
+        </div>
+      </div>
+    </form>
+
+    <section id="results" aria-live="polite">
+      <div class="card gross">
+        <span>Gross pay <em id="per-label">per paycheck</em></span>
+        <strong id="r-gross">$0.00</strong>
+      </div>
+      <ul class="deductions">
+        <li><span>Federal income tax</span><b id="r-federal">&ndash;</b></li>
+        <li><span>Social Security (6.2%)</span><b id="r-ss">&ndash;</b></li>
+        <li><span>Medicare (1.45%)</span><b id="r-medicare">&ndash;</b></li>
+        <li><span>State income tax</span><b id="r-state">&ndash;</b></li>
+      </ul>
+      <div class="card net">
+        <span>Take-home pay</span>
+        <strong id="r-net">$0.00</strong>
+      </div>
+      <p class="annual">Annualized: <b id="r-annual-gross">$0</b> gross &middot; <b id="r-annual-net">$0</b> net
+        &middot; effective rate <b id="r-rate">0%</b></p>
+    </section>
+
+    <p class="disclaimer">Estimate only. Uses 2026 federal single-filer brackets,
+      $16,100 standard deduction, 6.2% Social Security up to $184,500/yr, 1.45%
+      Medicare (+0.9% over $200k/yr). Actual withholding depends on your W-4,
+      YTD earnings, and pre-tax deductions.</p>
+  </main>
+
+  <script src="src/app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("public/service-worker.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

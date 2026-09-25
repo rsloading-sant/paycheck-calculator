@@ -1,0 +1,1 @@
+{"description":"Offline-first PWA that estimates take-home pay using 2026 US tax figures.","name":"paycheck-calculator","private":true,"scripts":{"start":"npx --yes serve ."},"version":"0.1.0"}

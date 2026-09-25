@@ -1,17 +1,18 @@
-/* Offline cache for the Paycheck Calculator app shell.
-   NOTE: this file is registered from public/service-worker.js, so its
-   scope is /public/. For the service worker to cache and serve the whole
-   app offline (including /index.html), serve this file from the site root
-   instead, or move it to the repo root. */
-const CACHE = "paycheck-calculator-v1";
+// NOTE: this file lives under public/, so its default scope is /public/ only.
+// It still caches the app shell below (including cross-origin React CDN scripts),
+// so the app shell loads offline. For full-site offline scope, move this file to
+// the repo root.
+const CACHE = "paycheck-calculator-v2";
 const ASSETS = [
   "/",
   "/index.html",
-  "/src/app.js",
-  "/src/styles.css",
+  "/src/paycheck-calculator.jsx",
   "/public/manifest.json",
   "/public/icons/icon-192.png",
-  "/public/icons/icon-512.png"
+  "/public/icons/icon-512.png",
+  "https://unpkg.com/react@18/umd/react.production.min.js",
+  "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
+  "https://unpkg.com/@babel/standalone@7/babel.min.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,15 +23,21 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((hit) => hit || fetch(event.request))
+    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+        return response;
+      });
+    })
   );
 });

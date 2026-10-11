@@ -1,4 +1,4 @@
-const { useState, useEffect } = React;
+import { useState, useEffect } from "react";
 
 // Verified 2026 top statutory marginal rates (Tax Foundation 2026 table + state DOR/
 // legislative confirmations for post-Feb-2026 changes: AR, GA, SC, UT, WV). Local
@@ -90,7 +90,7 @@ function fmt(n) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function PaycheckCalculator() {
+export default function PaycheckCalculator() {
   const [hours, setHours] = useState(58);
   const [rate, setRate] = useState(56);
   const [calcMode, setCalcMode] = useState("ot15");
@@ -238,9 +238,8 @@ function PaycheckCalculator() {
       margin: "0",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=Allura&display=swap');
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #0a0a0f; }
 
         .calc-container {
           max-width: 860px;
@@ -569,6 +568,44 @@ function PaycheckCalculator() {
           to { opacity: 1; transform: translateY(0); }
         }
 
+        .signature {
+          text-align: center;
+          margin-top: 48px;
+          animation: fadeSlide 0.8s ease forwards;
+        }
+
+        .signature-line {
+          height: 1px;
+          width: 70%;
+          max-width: 360px;
+          margin: 0 auto 18px;
+          background: linear-gradient(90deg, transparent, #c0963c, transparent);
+        }
+
+        .signature-by {
+          font-size: 11px;
+          letter-spacing: 0.35em;
+          text-transform: uppercase;
+          color: #6a6058;
+          margin-bottom: 2px;
+        }
+
+        .signature-name {
+          font-family: 'Allura', cursive;
+          font-size: clamp(56px, 14vw, 76px);
+          line-height: 1.15;
+          color: #d4b878;
+          text-shadow: 0 0 18px rgba(192, 150, 60, 0.35);
+        }
+
+        .signature-version {
+          font-size: 11px;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #4a4550;
+          margin-top: 2px;
+        }
+
         .footer {
           text-align: center;
           margin-top: 40px;
@@ -873,6 +910,13 @@ function PaycheckCalculator() {
             </div>
           </div>
         )}
+
+        <div className="signature">
+          <div className="signature-line" />
+          <div className="signature-by">Built by</div>
+          <div className="signature-name">Santana</div>
+          <div className="signature-version">v2.0 · Oct 2026</div>
+        </div>
 
         <div className="footer">
           PAYCHECK CALC · FOR INFORMATIONAL USE ONLY · NOT TAX ADVICE<br />

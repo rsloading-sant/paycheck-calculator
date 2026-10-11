@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+// Runs as a classic script via Babel standalone (no bundler), so hooks come
+// from the React UMD global instead of an import statement.
+const { useState, useEffect } = React;
 
 // Verified 2026 top statutory marginal rates (Tax Foundation 2026 table + state DOR/
 // legislative confirmations for post-Feb-2026 changes: AR, GA, SC, UT, WV). Local
@@ -90,7 +92,7 @@ function fmt(n) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export default function PaycheckCalculator() {
+function PaycheckCalculator() {
   const [hours, setHours] = useState(58);
   const [rate, setRate] = useState(56);
   const [calcMode, setCalcMode] = useState("ot15");

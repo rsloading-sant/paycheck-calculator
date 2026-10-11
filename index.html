@@ -2,15 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Paycheck Calculator</title>
   <meta name="description" content="Estimate your take-home pay with 2026 US tax figures. Works offline.">
   <meta name="theme-color" content="#0a0a0f">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="public/manifest.json">
   <link rel="icon" href="public/icons/icon-192.png">
   <link rel="apple-touch-icon" href="public/icons/icon-180.png">
   <style>
-    html, body { background: #0a0a0f; margin: 0; padding: 0; }
+    html { color-scheme: dark; background: #0a0a0f; }
+    html, body { background: #0a0a0f; margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: hidden; overscroll-behavior: none; }
+    body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box; }
+    #root { background: #0a0a0f; min-height: 100vh; }
   </style>
 </head>
 <body>
@@ -29,5 +36,7 @@
       navigator.serviceWorker.register("public/service-worker.js").catch(function () {});
     }
   </script>
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

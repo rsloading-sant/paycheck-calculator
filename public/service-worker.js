@@ -2,7 +2,7 @@
 // It still caches the app shell below (including cross-origin React CDN scripts),
 // so the app shell loads offline. For full-site offline scope, move this file to
 // the repo root.
-const CACHE = "paycheck-calculator-v3";
+const CACHE = "paycheck-calculator-v4";
 const ASSETS = [
   "/",
   "/index.html",

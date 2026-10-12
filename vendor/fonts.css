@@ -1,0 +1,6 @@
+/* Self-hosted fonts (Fontsource builds of DM Mono, Bebas Neue, Allura; SIL OFL). */
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:300;font-display:swap;src:url(fonts/dm-mono-latin-300-normal.woff2) format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/dm-mono-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/dm-mono-latin-500-normal.woff2) format('woff2');}
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/bebas-neue-latin-400-normal.woff2) format('woff2');}
+@font-face{font-family:'Allura';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/allura-latin-400-normal.woff2) format('woff2');}

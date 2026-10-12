@@ -68,15 +68,16 @@ const OT_MODES = [
 ];
 
 // 2026 single-filer brackets (IRS Rev. Proc. 2025-32) applied on top of the $16,100
-// standard deduction. dependents still modeled as a flat $2,000/yr taxable-income
-// reduction on top of that (not an IRS-defined credit, but matches how this
-// calculator has approximated dependent impact). Last cross-verified Sept 2026.
+// standard deduction. Children under 17 are modeled as the W-4 Step 3 credit:
+// $2,200 per child (2026 Form W-4), subtracted from tax dollar for dollar and
+// never taking tax below $0. Last cross-verified Oct 2026.
 const FEDERAL_STD_DEDUCTION = 16100;
+const CHILD_CREDIT = 2200;
 
-function calcFederalTax(gross, dependents = 0) {
+// Returns weekly figures: tax after credit, and the credit actually used.
+function calcFederalTax(gross, children = 0) {
   const annualGross = gross * 52;
-  const dependentReduction = dependents * 2000;
-  const annual = Math.max(annualGross - FEDERAL_STD_DEDUCTION - dependentReduction, 0);
+  const annual = Math.max(annualGross - FEDERAL_STD_DEDUCTION, 0);
   let tax = 0;
   if (annual <= 12400) tax = annual * 0.10;
   else if (annual <= 50400) tax = 1240 + (annual - 12400) * 0.12;
@@ -85,8 +86,21 @@ function calcFederalTax(gross, dependents = 0) {
   else if (annual <= 256225) tax = 41024 + (annual - 201775) * 0.32;
   else if (annual <= 640600) tax = 58448 + (annual - 256225) * 0.35;
   else tax = 192979.25 + (annual - 640600) * 0.37;
-  return Math.max(tax / 52, 0);
+  const credit = Math.min(children * CHILD_CREDIT, tax);
+  return { tax: Math.max(tax - credit, 0) / 52, credit: credit / 52 };
 }
+
+// Keeps typed values inside sane bounds so odd input (negatives, 9999 hrs) can't produce nonsense.
+function clampStr(v, min, max) {
+  if (v === "" || v === null || v === undefined) return "";
+  const n = parseFloat(v);
+  if (isNaN(n)) return "";
+  return String(Math.min(Math.max(n, min), max));
+}
+
+// States with a single flat rate (shown rate is what's actually applied). Every other
+// taxed state is graduated, so the rate shown is its TOP bracket, an upper-end estimate.
+const FLAT_RATE_STATES = new Set(["AZ","CO","GA","ID","IL","IN","IA","KY","LA","MI","NC","PA","UT"]);
 
 function fmt(n) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -173,8 +187,9 @@ function PaycheckCalculator() {
 
     const ss = gross * 0.062;
     const medicare = gross * 0.0145;
-    const fedTax = exempt ? 0 : calcFederalTax(gross, parseInt(dependents) || 0);
-    const dependentCredit = exempt ? 0 : ((parseInt(dependents) || 0) * 2000) / 52;
+    const fed = exempt ? { tax: 0, credit: 0 } : calcFederalTax(gross, parseInt(dependents) || 0);
+    const fedTax = fed.tax;
+    const dependentCredit = fed.credit;
     const stateTaxRate = STATE_TAXES[state]?.rate || 0;
     const stateTax = gross * stateTaxRate;
     const totalDeductions = ss + medicare + fedTax + stateTax;
@@ -240,7 +255,6 @@ function PaycheckCalculator() {
       margin: "0",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=Allura&display=swap');
         * { box-sizing: border-box; }
 
         .calc-container {
@@ -640,11 +654,11 @@ function PaycheckCalculator() {
         <div className="grid">
           <div className="field">
             <label>Total Hours Worked</label>
-            <input type="number" value={hours} onChange={e => setHours(e.target.value)} placeholder="e.g. 58" min="0" max="168" />
+            <input type="number" value={hours} onChange={e => setHours(clampStr(e.target.value, 0, 168))} placeholder="e.g. 58" min="0" max="168" />
           </div>
           <div className="field">
             <label>Base Pay Rate ($/hr)</label>
-            <input type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="e.g. 56" min="0" step="0.25" />
+            <input type="number" value={rate} onChange={e => setRate(clampStr(e.target.value, 0, 1000))} placeholder="e.g. 56" min="0" step="0.25" />
           </div>
         </div>
 
@@ -732,7 +746,7 @@ function PaycheckCalculator() {
         {calcMode === "dtday" && (
           <div className="field" style={{ marginBottom: 16 }}>
             <label>Double-Time Hours (specific day)</label>
-            <input type="number" value={dtHours} onChange={e => setDtHours(e.target.value)} placeholder="e.g. 8" min="0" max={hours} step="0.25" />
+            <input type="number" value={dtHours} onChange={e => setDtHours(clampStr(e.target.value, 0, 168))} placeholder="e.g. 8" min="0" max={hours} step="0.25" />
             <div className="field-hint">
               These hours are pulled out and paid at 2×. The rest of your {Math.max((parseFloat(hours) || 0) - (parseFloat(dtHours) || 0), 0)} hrs follow the normal 40hr/1.5× rule.
             </div>
@@ -752,11 +766,11 @@ function PaycheckCalculator() {
             <div className="grid">
               <div className="field">
                 <label>Hours at 1.5×</label>
-                <input type="number" value={ot15Hours} onChange={e => setOt15Hours(e.target.value)} placeholder="e.g. 16" min="0" step="0.25" />
+                <input type="number" value={ot15Hours} onChange={e => setOt15Hours(clampStr(e.target.value, 0, 168))} placeholder="e.g. 16" min="0" step="0.25" />
               </div>
               <div className="field">
                 <label>Hours at 2×</label>
-                <input type="number" value={ot2Hours} onChange={e => setOt2Hours(e.target.value)} placeholder="e.g. 10" min="0" step="0.25" />
+                <input type="number" value={ot2Hours} onChange={e => setOt2Hours(clampStr(e.target.value, 0, 168))} placeholder="e.g. 10" min="0" step="0.25" />
               </div>
             </div>
           </div>
@@ -776,10 +790,10 @@ function PaycheckCalculator() {
 
         {!exempt && (
           <div className="field" style={{ marginBottom: 16 }}>
-            <label>Number of Dependents</label>
-            <input type="number" value={dependents} onChange={e => setDependents(e.target.value)} placeholder="0" min="0" max="20" step="1" />
+            <label>Children Under 17</label>
+            <input type="number" value={dependents} onChange={e => setDependents(clampStr(e.target.value, 0, 20))} placeholder="0" min="0" max="20" step="1" />
             <div style={{ fontSize: 10, color: "#4a4550", marginTop: 4, letterSpacing: "0.1em" }}>
-              Each dependent reduces taxable income by $2,000/yr (W-4 Step 3)
+              Each child under 17 cuts withholding by $2,200/yr (W-4 Step 3 credit)
             </div>
           </div>
         )}
@@ -789,7 +803,7 @@ function PaycheckCalculator() {
           <select value={state} onChange={e => setState(e.target.value)}>
             {Object.entries(STATE_TAXES).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([code, info]) => (
               <option key={code} value={code}>
-                {info.name} {info.rate === 0 ? "(No State Tax)" : `(${(info.rate * 100).toFixed(2)}%)`}
+                {info.name} {info.rate === 0 ? "(No State Tax)" : `(${(info.rate * 100).toFixed(2)}%${FLAT_RATE_STATES.has(code) ? "" : " top rate"})`}
               </option>
             ))}
           </select>
@@ -798,11 +812,11 @@ function PaycheckCalculator() {
         <div className="grid">
           <div className="field">
             <label>Per Diem Rate ($/day)</label>
-            <input type="number" value={perDiemRate} onChange={e => setPerDiemRate(e.target.value)} placeholder="e.g. 115" min="0" />
+            <input type="number" value={perDiemRate} onChange={e => setPerDiemRate(clampStr(e.target.value, 0, 1000))} placeholder="e.g. 115" min="0" />
           </div>
           <div className="field">
             <label>Per Diem Days</label>
-            <input type="number" value={perDiemDays} onChange={e => setPerDiemDays(e.target.value)} placeholder="e.g. 7" min="0" max="7" />
+            <input type="number" value={perDiemDays} onChange={e => setPerDiemDays(clampStr(e.target.value, 0, 7))} placeholder="e.g. 7" min="0" max="7" />
           </div>
         </div>
 
@@ -845,13 +859,13 @@ function PaycheckCalculator() {
                 </span>
               </div>
 
-              {!exempt && (parseInt(dependents) || 0) > 0 && (
+              {!exempt && result.dependentCredit > 0 && (
                 <div className="result-row" style={{ animationDelay: "60ms" }}>
                   <span className="label" style={{ paddingLeft: 12, color: "#3a5a4a" }}>
-                    ↳ Dependent Credit ({dependents} × $2,000/yr)
+                    ↳ Child Credit ({dependents} × $2,200/yr)
                   </span>
                   <span className="value" style={{ color: "#4a8a5a", fontSize: 12 }}>
-                    -${fmt(result.dependentCredit)}/wk taxable
+                    -${fmt(result.dependentCredit)}/wk off tax
                   </span>
                 </div>
               )}
@@ -860,6 +874,7 @@ function PaycheckCalculator() {
                 <span className="label">
                   {stateInfo?.name} State Tax
                   {noStateTax && <span style={{ fontSize: 10, marginLeft: 6, color: "#4a5a8a" }}>(none)</span>}
+                  {!noStateTax && !FLAT_RATE_STATES.has(state) && <span style={{ fontSize: 10, marginLeft: 6, color: "#4a5a8a" }}>(top-rate est.)</span>}
                 </span>
                 <span className={`value ${noStateTax ? "none-tag" : "deduct"}`}>
                   {noStateTax ? "NO STATE TAX" : `-$${fmt(result.stateTax)}`}
@@ -867,7 +882,7 @@ function PaycheckCalculator() {
               </div>
 
               <div className="result-row" style={{ animationDelay: "120ms" }}>
-                <span className="label">Social Security (6.2%)</span>
+                <span className="label">Social Security (6.2%, up to $184,500/yr)</span>
                 <span className="value deduct">-${fmt(result.ss)}</span>
               </div>
 
@@ -922,7 +937,8 @@ function PaycheckCalculator() {
 
         <div className="footer">
           PAYCHECK CALC · FOR INFORMATIONAL USE ONLY · NOT TAX ADVICE<br />
-          Federal withholding estimated via 2026 IRS brackets (Rev. Proc. 2025-32)
+          Federal withholding estimated via 2026 IRS brackets (Rev. Proc. 2025-32)<br />
+          State tax is a flat or top-bracket estimate · Social Security stops after $184,500 earned in the year (2026)
         </div>
       </div>
     </div>

@@ -22,10 +22,13 @@
 </head>
 <body>
   <div id="root"></div>
+  <footer style="background:#0a0a0f;color:#8a8a93;text-align:center;font-size:11px;line-height:1.5;padding:14px 16px 18px;font-family:system-ui,-apple-system,sans-serif;">
+    Official site: paycheck-calculator-kohl.vercel.app &middot; This calculator never asks for personal information &mdash; beware of copies.
+  </footer>
 
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <script crossorigin="anonymous" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin="anonymous" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script crossorigin="anonymous" integrity="sha384-DvKInD++yy7A2BLvCHTGeQpbzHFQ/fygXywfI/wco5cjKN4A+mE48ib8UE8FiW0o" src="https://unpkg.com/@babel/standalone@7.29.10/babel.min.js"></script>
   <script type="text/babel" data-presets="react" src="src/paycheck-calculator.jsx"></script>
   <script type="text/babel" data-presets="react">
     ReactDOM.createRoot(document.getElementById("root")).render(<PaycheckCalculator />);
